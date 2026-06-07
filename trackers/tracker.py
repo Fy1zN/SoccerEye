@@ -10,7 +10,7 @@ from utils import (
     get_bbox_width,
     get_foot_position
 )
-    
+
 
 class Tracker:
 
@@ -247,10 +247,19 @@ class Tracker:
                 player_dict.items()
             ):
 
+                color = player.get(
+                    "team_color",
+                    (255, 0, 0)
+                )
+
+                color = tuple(
+                    int(c) for c in color
+                )
+
                 frame = self.draw_ellipse(
                     frame,
                     player["bbox"],
-                    (255, 0, 0),
+                    color,
                     track_id
                 )
 
@@ -278,4 +287,4 @@ class Tracker:
 
             output_frames.append(frame)
 
-        return output_frames
+        return output_framess
