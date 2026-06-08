@@ -4,47 +4,94 @@
 
 Track players, referees, and ball movement in football matches using Computer Vision, YOLOv8, and ByteTrack.
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange)
-![Computer%20Vision-OpenCV-green)
-![Tracking-ByteTrack-red)
-![Status-Active-brightgreen)
-![License-MIT-yellow)
-
----
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-FF6F00?style=for-the-badge)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![ByteTrack](https://img.shields.io/badge/ByteTrack-Tracking-red?style=for-the-badge)
+![OpenCV Optical Flow](https://img.shields.io/badge/Optical%20Flow-Camera%20Motion-success?style=for-the-badge)
+![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
 # 📌 Overview
 
-SoccerEye is an AI-driven football analytics system that automatically detects and tracks players, referees, and the ball from match footage using state-of-the-art computer vision techniques.
+SoccerEye is an AI-powered football analytics platform that transforms raw match footage into actionable insights using Computer Vision and Deep Learning.
 
-The platform processes football videos frame-by-frame, generates persistent player IDs, and visualizes tracking results through annotated match footage.
+The system automatically detects players, referees, goalkeepers, and the ball, assigns persistent tracking IDs, classifies teams, estimates camera movement, and calculates real-time ball possession statistics.
+
+Designed as a modular football analysis pipeline, SoccerEye serves as a foundation for advanced analytics such as player speed estimation, heatmaps, passing networks, and tactical intelligence systems.
 
 ---
 
 # 🚀 Features
 
-### 🎯 Object Detection
-- Player Detection
-- Referee Detection
-- Ball Detection
-- Goalkeeper Detection
+## 🎯 Object Detection
 
-### 📍 Multi-Object Tracking
-- ByteTrack Integration
-- Persistent Player IDs
-- Real-Time Object Association
-- Track Management Across Frames
+* Player Detection
+* Goalkeeper Detection
+* Referee Detection
+* Ball Detection
+* YOLOv8-based Detection Pipeline
 
-### 📊 Match Visualization
-- Player Tracking Overlays
-- Ball Position Indicators
-- Referee Identification
-- Annotated Match Video Generation
+---
 
-### ⚡ Performance Optimizations
-- Batch Inference Processing
-- YOLOv8-based Detection Pipeline
-- Efficient Video Frame Handling
+## 📍 Multi-Object Tracking
+
+* ByteTrack Integration
+* Persistent Player IDs
+* Multi-Frame Object Association
+* Real-Time Object Tracking
+* Stable Identity Management
+
+---
+
+## 👕 Team Classification
+
+* Automatic Team Assignment
+* Jersey Color Analysis
+* Team Color Extraction
+* Team-Based Player Identification
+
+---
+
+## ⚽ Ball Possession Analysis
+
+* Ball-to-Player Assignment
+* Possession Holder Detection
+* Team Possession Tracking
+* Real-Time Possession Percentage Calculation
+* Live Possession Overlay
+
+---
+
+## 🎥 Camera Movement Estimation
+
+* Optical Flow Tracking
+* Feature Point Tracking
+* Frame-to-Frame Camera Motion Detection
+* Camera Shift Compensation Support
+
+---
+
+## 📊 Match Visualization
+
+* Player Tracking Overlays
+* Team Color Visualization
+* Ball Tracking Indicators
+* Ball Possession Markers
+* Team Possession Dashboard
+* Camera Movement Dashboard
+* Annotated Match Video Generation
+
+---
+
+## ⚡ Performance Optimizations
+
+* Batch Inference Processing
+* Stub-Based Caching
+* Ball Position Interpolation
+* Efficient Video Frame Processing
+* Reduced Reprocessing Time
 
 ---
 
@@ -52,6 +99,18 @@ The platform processes football videos frame-by-frame, generates persistent play
 
 ```bash
 SoccerEye/
+│
+├── camera_movement_estimator/
+│   ├── __init__.py
+│   └── camera_movement_estimator.py
+│
+├── player_ball_assigner/
+│   ├── __init__.py
+│   └── player_ball_assigner.py
+│
+├── team_assigner/
+│   ├── __init__.py
+│   └── team_assigner.py
 │
 ├── trackers/
 │   ├── __init__.py
@@ -66,109 +125,180 @@ SoccerEye/
 │   └── best.pt
 │
 ├── Input_data/
-│   └── input_videos
 │
 ├── output/
-│   └── generated_results
 │
-├── training/
+├── stubs/
 │
 ├── inference.ipynb
 ├── main.py
-└── requirements.txt
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
 # 🧠 Tech Stack
 
-### Computer Vision
-- OpenCV
-- NumPy
+## Computer Vision
 
-### Deep Learning
-- YOLOv8 (Ultralytics)
+* OpenCV
+* Optical Flow
+* Feature Tracking
 
-### Object Tracking
-- ByteTrack
-- Supervision
+## Deep Learning
 
-### Development
-- Python 3.10+
-- Jupyter Notebook
-- VS Code
+* YOLOv8 (Ultralytics)
+
+## Object Tracking
+
+* ByteTrack
+* Supervision
+
+## Data Processing
+
+* NumPy
+* Pandas
+
+## Development
+
+* Python 3.10+
+* Jupyter Notebook
+* VS Code
 
 ---
 
-# 🔄 Pipeline
+# 🔄 Processing Pipeline
 
 ```text
-Input Match Video
-        │
-        ▼
+Input Football Video
+          │
+          ▼
 Frame Extraction
-        │
-        ▼
+          │
+          ▼
 YOLOv8 Detection
-        │
-        ▼
+          │
+          ▼
 ByteTrack Tracking
-        │
-        ▼
-Object Association
-        │
-        ▼
+          │
+          ▼
 Player ID Assignment
-        │
-        ▼
+          │
+          ▼
+Team Classification
+          │
+          ▼
+Ball Assignment
+          │
+          ▼
+Ball Possession Analysis
+          │
+          ▼
+Camera Movement Estimation
+          │
+          ▼
 Frame Annotation
-        │
-        ▼
-Output Video Generation
+          │
+          ▼
+Output Analytics Video
 ```
 
 ---
 
 # 📈 Current Capabilities
 
-✅ Player Tracking
+✅ Player Detection
 
-✅ Ball Tracking
+✅ Goalkeeper Detection
 
-✅ Referee Tracking
+✅ Referee Detection
 
-✅ Persistent IDs
+✅ Ball Detection
 
-✅ Video Annotation
+✅ Persistent Player Tracking
 
-✅ Batch Inference
+✅ Team Classification
+
+✅ Ball Possession Detection
+
+✅ Live Team Possession Statistics
+
+✅ Camera Movement Estimation
+
+✅ Ball Position Interpolation
+
+✅ Match Video Annotation
+
+---
+
+# 📸 Generated Analytics
+
+### Player Analytics
+
+* Persistent Player IDs
+* Team Assignment
+* Ball Possession Holder Detection
+
+### Team Analytics
+
+* Team Possession Percentage
+* Team-Based Tracking
+
+### Match Analytics
+
+* Camera Movement Analysis
+* Ball Tracking
+* Object Tracking
+
+### Visual Overlays
+
+* Team Colors
+* Possession Indicators
+* Analytics Dashboard
+* Camera Motion Dashboard
 
 ---
 
 # 🔮 Roadmap
 
-### Phase 1 (Completed)
-- Object Detection
-- Player Tracking
-- Ball Tracking
-- Video Annotation
+## Phase 1 — Completed ✅
 
-### Phase 2
-- Team Classification
-- Ball Possession Analysis
-- Player Speed Estimation
-- Distance Covered Metrics
+* Object Detection
+* Player Tracking
+* Ball Tracking
+* Team Assignment
+* Ball Possession Analysis
+* Camera Movement Estimation
+* Video Annotation
 
-### Phase 3
-- Tactical Heatmaps
-- Passing Network Analysis
-- Expected Threat (xT)
-- Match Intelligence Dashboard
+---
 
-### Phase 4
-- Real-Time Match Processing
-- Multi-Camera Tracking
-- Advanced Football Analytics Platform
+## Phase 2 — In Progress 🚧
+
+* View Transformer
+* Real-World Pitch Coordinates
+* Speed Estimation
+* Distance Covered Metrics
+
+---
+
+## Phase 3
+
+* Tactical Heatmaps
+* Passing Network Analysis
+* Shot Detection
+* Expected Threat (xT)
+* Possession Zones
+
+---
+
+## Phase 4
+
+* Real-Time Match Analysis
+* Multi-Camera Tracking
+* Tactical Intelligence Dashboard
+* AI-Powered Match Insights
 
 ---
 
@@ -190,11 +320,13 @@ pip install -r requirements.txt
 
 # ▶️ Usage
 
+Run the complete pipeline:
+
 ```bash
 python main.py
 ```
 
-The generated annotated video will be saved inside:
+Generated outputs will be saved in:
 
 ```bash
 output/
@@ -204,21 +336,26 @@ output/
 
 # 📸 Sample Output
 
-SoccerEye generates annotated football footage featuring:
+The generated video contains:
 
-- Player IDs
-- Ball Tracking
-- Referee Tracking
-- Visual Tracking Markers
-- Match Analytics Overlays
+* Player Tracking IDs
+* Ball Tracking
+* Team Classification
+* Ball Possession Indicators
+* Team Possession Statistics
+* Camera Movement Statistics
+* Annotated Match Analytics
 
 ---
 
-# 🤝 Contributions
+# 🤝 Contributing
 
-Contributions, feature requests, and improvements are welcome.
+Contributions, suggestions, and feature requests are welcome.
 
-Feel free to open issues or submit pull requests.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
 
 ---
 
@@ -228,4 +365,12 @@ This project is licensed under the MIT License.
 
 ---
 
-### Developed by Krish Malhotra ⚽
+# 👨‍💻 Developer
+
+**Krish Malhotra**
+
+AI • Computer Vision • Machine Learning • Football Analytics
+
+---
+
+### ⚽ SoccerEye — Turning Football Footage into Match Intelligence
