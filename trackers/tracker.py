@@ -1,14 +1,15 @@
-from ultralytics import YOLO
-import supervision as sv
-import pickle
 import os
+import pickle
 import cv2
 import numpy as np
+import pandas as pd
+import supervision as sv
+from ultralytics import YOLO
 
 from utils import (
-    get_center_of_bbox,
     get_bbox_width,
-    get_foot_position
+    get_center_of_bbox,
+    get_foot_position,
 )
 
 
@@ -17,6 +18,20 @@ class Tracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()
+
+    def add_position_to_tracks(self, tracks):
+        for object_name, object_tracks in tracks.items():
+            for frame_num, track in enumerate(object_tracks):
+                for track_id, track_info in track.items():
+
+                    bbox = track_info["bbox"]
+
+                    if object_name == "ball":
+                        position = get_center_of_bbox(bbox)
+                    else:
+                        position = get_foot_position(bbox)
+
+                    tracks[object_name][frame_num][track_id]["position"] = position
 
     def detect_frames(self, frames):
 
@@ -71,7 +86,6 @@ class Tracker:
                 detection
             )
 
-            # convert goalkeeper -> player
             for i, class_id in enumerate(
                 detection_sv.class_id
             ):
@@ -81,8 +95,7 @@ class Tracker:
                     )
 
             tracked = (
-                self.tracker
-                .update_with_detections(
+                self.tracker.update_with_detections(
                     detection_sv
                 )
             )
@@ -91,7 +104,6 @@ class Tracker:
             tracks["referees"].append({})
             tracks["ball"].append({})
 
-            # tracked objects
             for item in tracked:
 
                 bbox = item[0].tolist()
@@ -114,7 +126,6 @@ class Tracker:
                         "bbox": bbox
                     }
 
-            # ball detections
             for item in detection_sv:
 
                 bbox = item[0].tolist()
@@ -132,6 +143,38 @@ class Tracker:
                 pickle.dump(tracks, f)
 
         return tracks
+
+    def interpolate_ball_positions(
+        self,
+        ball_positions
+    ):
+
+        ball_positions = [
+            x.get(1, {}).get("bbox", [])
+            for x in ball_positions
+        ]
+
+        df_ball_positions = pd.DataFrame(
+            ball_positions,
+            columns=["x1", "y1", "x2", "y2"]
+        )
+
+        df_ball_positions = (
+            df_ball_positions
+            .interpolate()
+            .bfill()
+        )
+
+        ball_positions = [
+            {1: {"bbox": x}}
+            for x in (
+                df_ball_positions
+                .to_numpy()
+                .tolist()
+            )
+        ]
+
+        return ball_positions
 
     def draw_ellipse(
         self,
@@ -219,33 +262,21 @@ class Tracker:
     def draw_annotations(
         self,
         video_frames,
-        tracks
+        tracks,
+        team_ball_control=None
     ):
 
         output_frames = []
 
-        for frame_num, frame in enumerate(
-            video_frames
-        ):
+        for frame_num, frame in enumerate(video_frames):
 
             frame = frame.copy()
 
-            player_dict = (
-                tracks["players"][frame_num]
-            )
+            player_dict = tracks["players"][frame_num]
+            referee_dict = tracks["referees"][frame_num]
+            ball_dict = tracks["ball"][frame_num]
 
-            referee_dict = (
-                tracks["referees"][frame_num]
-            )
-
-            ball_dict = (
-                tracks["ball"][frame_num]
-            )
-
-            # players
-            for track_id, player in (
-                player_dict.items()
-            ):
+            for track_id, player in player_dict.items():
 
                 color = player.get(
                     "team_color",
@@ -263,10 +294,17 @@ class Tracker:
                     track_id
                 )
 
-            # referees
-            for _, referee in (
-                referee_dict.items()
-            ):
+                if player.get(
+                    "has_ball",
+                    False
+                ):
+                    frame = self.draw_triangle(
+                        frame,
+                        player["bbox"],
+                        (0, 0, 255)
+                    )
+
+            for _, referee in referee_dict.items():
 
                 frame = self.draw_ellipse(
                     frame,
@@ -274,10 +312,7 @@ class Tracker:
                     (0, 255, 255)
                 )
 
-            # ball
-            for _, ball in (
-                ball_dict.items()
-            ):
+            for _, ball in ball_dict.items():
 
                 frame = self.draw_triangle(
                     frame,
@@ -285,6 +320,78 @@ class Tracker:
                     (0, 255, 0)
                 )
 
+            # Team Possession Panel
+            if (
+                team_ball_control is not None
+                and frame_num < len(team_ball_control)
+            ):
+
+                team1_frames = (
+                    team_ball_control[:frame_num + 1] == 1
+                ).sum()
+
+                team2_frames = (
+                    team_ball_control[:frame_num + 1] == 2
+                ).sum()
+
+                total_frames = (
+                    team1_frames +
+                    team2_frames
+                )
+
+                if total_frames > 0:
+
+                    team1_pct = (
+                        team1_frames /
+                        total_frames
+                    ) * 100
+
+                    team2_pct = (
+                        team2_frames /
+                        total_frames
+                    ) * 100
+
+                    height, width = frame.shape[:2]
+
+                    overlay = frame.copy()
+
+                    cv2.rectangle(
+                        overlay,
+                        (width - 450, height - 140),
+                        (width - 20, height - 20),
+                        (255, 255, 255),
+                        -1
+                    )
+
+                    cv2.addWeighted(
+                        overlay,
+                        0.4,
+                        frame,
+                        0.6,
+                        0,
+                        frame
+                    )
+
+                    cv2.putText(
+                        frame,
+                        f"Team 1 Possession: {team1_pct:.1f}%",
+                        (width - 430, height - 85),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.8,
+                        (0, 0, 0),
+                        2
+                    )
+
+                    cv2.putText(
+                        frame,
+                        f"Team 2 Possession: {team2_pct:.1f}%",
+                        (width - 430, height - 40),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.8,
+                        (0, 0, 0),
+                        2
+                    )
+
             output_frames.append(frame)
 
-        return output_framess
+        return output_frames

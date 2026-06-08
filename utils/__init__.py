@@ -6,5 +6,7 @@ from .video_utils import (
 from .bbox_utils import (
     get_center_of_bbox,
     get_bbox_width,
-    get_foot_position
+    get_foot_position,
+    measure_distance,
+    measure_xy_distance
 )
