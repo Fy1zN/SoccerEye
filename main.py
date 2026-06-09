@@ -5,6 +5,12 @@ from player_ball_assigner import PlayerBallAssigner
 from camera_movement_estimator import (
     CameraMovementEstimator
 )
+from view_transformer import (
+    ViewTransformer
+)
+from speed_and_distance_estimator import (
+    SpeedAndDistance_Estimator
+)
 
 import cv2
 import os
@@ -28,14 +34,20 @@ def main():
         exist_ok=True
     )
 
-    # Initialize tracker
+    # --------------------------------------------------
+    # INITIALIZE TRACKER
+    # --------------------------------------------------
+
     tracker = Tracker(
         "models/best.pt"
     )
 
     print("Tracker initialized")
 
-    # Detect + Track
+    # --------------------------------------------------
+    # DETECT + TRACK
+    # --------------------------------------------------
+
     tracks = tracker.get_object_tracks(
         frames,
         read_from_stub=True,
@@ -43,6 +55,20 @@ def main():
     )
 
     print("Tracking complete")
+
+    # --------------------------------------------------
+    # INTERPOLATE BALL POSITIONS
+    # --------------------------------------------------
+
+    tracks["ball"] = (
+        tracker.interpolate_ball_positions(
+            tracks["ball"]
+        )
+    )
+
+    print(
+        "Ball interpolation complete"
+    )
 
     # --------------------------------------------------
     # ADD POSITIONS TO TRACKS
@@ -77,27 +103,63 @@ def main():
     )
 
     camera_movement_estimator\
-    .add_adjust_positions_to_tracks(
-        tracks,
-        camera_movement_per_frame
-    )
+        .add_adjust_positions_to_tracks(
+            tracks,
+            camera_movement_per_frame
+        )
 
     print(
         "Camera movement estimated"
     )
 
     # --------------------------------------------------
-    # INTERPOLATE BALL POSITIONS
+    # VIEW TRANSFORMER
     # --------------------------------------------------
 
-    tracks["ball"] = (
-        tracker.interpolate_ball_positions(
-            tracks["ball"]
-        )
+    view_transformer = (
+        ViewTransformer()
     )
 
+    view_transformer\
+        .add_transformed_position_to_tracks(
+            tracks
+        )
+
     print(
-        "Ball interpolation complete"
+        "Perspective transformation complete"
+    )
+
+    # --- Change 3: Add Debug Counter ---
+    count_total = 0
+    count_transformed = 0
+
+    for frame_tracks in tracks["players"]:
+        for _, player in frame_tracks.items():
+            count_total += 1
+
+            if player.get("position_transformed") is not None:
+                count_transformed += 1
+
+    print(
+        f"Transformed positions: "
+        f"{count_transformed}/{count_total}"
+    )
+
+    # --------------------------------------------------
+    # SPEED & DISTANCE ESTIMATION
+    # --------------------------------------------------
+
+    speed_and_distance_estimator = (
+        SpeedAndDistance_Estimator()
+    )
+
+    speed_and_distance_estimator\
+        .add_speed_and_distance_to_tracks(
+            tracks
+        )
+
+    print(
+        "Speed and distance calculated"
     )
 
     # --------------------------------------------------
@@ -285,6 +347,22 @@ def main():
 
     print(
         "Camera movement overlay added"
+    )
+
+    # --------------------------------------------------
+    # DRAW SPEED & DISTANCE
+    # --------------------------------------------------
+
+    output_frames = (
+        speed_and_distance_estimator
+        .draw_speed_and_distance(
+            output_frames,
+            tracks
+        )
+    )
+
+    print(
+        "Speed and distance overlay added"
     )
 
     # --------------------------------------------------
